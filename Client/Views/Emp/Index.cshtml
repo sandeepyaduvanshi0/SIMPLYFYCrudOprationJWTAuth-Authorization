@@ -1,0 +1,104 @@
+﻿@model List<Employee>
+
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+</style>
+<h2>Employee List</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            <tr>
+                <td>@emp.id</td>
+                <td>@emp.name</td>
+                <td>@emp.department</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(emp.img))
+                    {
+                        <img src="@emp.img" alt="Employee Image" width="50" />
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-warning" onclick="openEditPopup(@emp.id, '@emp.name', '@emp.department', '@emp.img')">Edit</button>
+                    <a href="/Emp/Delete/@emp.id" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-primary" onclick="openAddPopup()">Add Employee</button>
+<div id="employeePopup" class="popup">
+    <form asp-action="AddOrUpdate" asp-controller="Emp" method="post" enctype="multipart/form-data">
+        <input type="hidden" id="employeeID" name="ID" value="0" />
+        <input type="hidden" id="employeeimg" name="img" value="0" />
+        <div>
+            <label>Name:</label>
+            <input type="text" id="employeeName" name="Name" required />
+        </div>
+        <div>
+            <label>Name:</label>
+            <input type="text" id="employeedespart" name="department" required />
+        </div>
+        <div>
+            <label>Image:</label>
+            <input type="file" id="employeeImageFile" name="imageFile" accept="image/*" onchange="showPreview(event)" />
+            <img id="preview" style="max-width: 100px;" />
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closePopup()">Cancel</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function openAddPopup() {
+            document.getElementById('employeeID').value = 0;
+            document.getElementById('employeeName').value = '';
+            document.getElementById('employeedespart').value = '';
+            document.getElementById('employeeImageFile').value = null;
+            document.getElementById('preview').src = '';
+            document.getElementById('employeePopup').style.display = 'block';
+        }
+
+        function openEditPopup(id, name,depart, imagePath) {
+            document.getElementById('employeeID').value = id;
+            document.getElementById('employeeName').value = name;
+            document.getElementById('employeedespart').value = depart;
+            document.getElementById('employeeImageFile').value = null;
+            document.getElementById('preview').src = imagePath;
+            document.getElementById('employeePopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('employeePopup').style.display = 'none';
+        }
+
+        function showPreview(event) {
+            var output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.onload = function () {
+                URL.revokeObjectURL(output.src);
+            }
+        }
+    </script>
+
+}
