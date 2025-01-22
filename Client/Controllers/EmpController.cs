@@ -1,5 +1,6 @@
 ﻿using Client.Extra.Service;
 using Client.Models;
+using Client.Report;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http;
@@ -21,6 +22,27 @@ namespace Client.Controllers
             var response = await _httpClient.GetStringAsync("Emp/Get");
             var emp = System.Text.Json.JsonSerializer.Deserialize<List<Employee>>(response);
             return View(emp);
+        }
+        public async Task<IActionResult> Print(int? id)
+        {
+            string outputPath = "EmployeeDetails.pdf";
+            var response = await _httpClient.GetStringAsync("Emp/Get?id=" + id);
+            //var emp = System.Text.Json.JsonSerializer.Deserialize<List<Employee>>(response);
+            var emp = System.Text.Json.JsonSerializer.Deserialize<List<Employee>>(response);
+            // Generate PDF
+            //PdfGenerator.GeneratePdf(emp, outputPath);
+            if (emp == null || emp.Count == 0)
+            {
+                return NotFound("No employee data found.");
+                return RedirectToAction("Index");
+            }
+
+            // Generate PDF as a byte array
+            byte[] pdfBytes = PdfGenerator.GeneratePdf(emp);
+
+            // Return the PDF as a file download
+            return File(pdfBytes, "application/pdf", "EmployeeDetails.pdf");
+            return RedirectToAction("Index");
         }
         [HttpPost]
         public async Task<IActionResult> AddOrUpdate(Employee employee, IFormFile imageFile)
@@ -74,14 +96,14 @@ namespace Client.Controllers
                 {
                     TempData["error"] = e.Message;
                     return RedirectToAction("Index");
-                }               
+                }
             }
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Delete(int? id)
         {
-            var url ="Emp/Remove?id=" +id;
+            var url = "Emp/Remove?id=" + id;
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Globle.Token);

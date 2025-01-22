@@ -24,9 +24,9 @@ namespace Server.Controllers
             }
             else
             {
-                var user = _appDb.Emps.FirstOrDefault(_ => _.Id == id);
+                var user = _appDb.Emps.Where(_ => _.Id == id).ToList();
                 if (user == null) return BadRequest("No Data found...");
-                return Ok(user);
+                return Ok(user.ToList());
             }
 
         }
